@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RepuAgent — Smart Link France</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #fafaf7; --surface: #ffffff; --ink: #18181b; --muted: #71717a;
@@ -284,7 +285,27 @@ Règles :
   function showError(msg) { const e = document.getElementById('error-msg'); e.textContent = msg; e.style.display = 'block'; }
   function hideError() { document.getElementById('error-msg').style.display = 'none'; }
 
+  // ── SUPABASE AUTH CHECK ──
+  // Si l'utilisateur n'est pas connecté → redirige vers login
+  async function checkAuth() {
+    try {
+      const { createClient } = window.supabase;
+      const _supabase = createClient(
+        'https://zgedwmltilrrwwiiyzgw.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnZWR3bWx0aWxycnd3aWl5emd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzIyNzgsImV4cCI6MjA5MDA0ODI3OH0.mHRhGILVlsruWkJ9ZIJ2sV93T9PIv_dXo4z3cCJtias'
+      );
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'https://agent.gosmartlink.app/login.html';
+      }
+    } catch(e) {
+      // Si erreur (clé non configurée), on laisse passer en mode démo
+      console.log('Auth check skipped:', e.message);
+    }
+  }
+
   window.onload = () => {
+    checkAuth();
     document.getElementById('commerce-name').value = 'Salon Élégance';
     document.getElementById('commerce-type').value = 'salon de coiffure';
     document.getElementById('commerce-city').value = 'Paris 15e';
