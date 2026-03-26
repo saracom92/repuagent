@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RepuAgent — Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23b8902e'/><text y='.9em' font-size='70' x='12'>⭐</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f7f6f3;--surface:#fff;--card:#fff;
+  --ink:#18181b;--ink2:#27272a;--muted:#71717a;--dim:#a1a1aa;
+  --border:#e4e4e7;--border2:#d4d4d8;
+  --sw:240px;--th:58px;
+  --gold:#b8902e;--gold2:#d4a843;--gold3:#f5dfa0;
+  --gold-l:#fef9ec;--gold-b:#fde68a;
+  --green:#16a34a;--green-l:#f0fdf4;--green-b:#bbf7d0;
+  --red:#dc2626;--red-l:#fef2f2;
+  --blue:#2563eb;--blue-l:#eff6ff;
+  --purple:#7c3aed;--purple-l:#f5f3ff;
+}
+html{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* LOADING */
+.ls{position:fixed;inset:0;background:#18181b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9999;transition:opacity .5s}
+.ls.out{opacity:0;pointer-events:none}
+.ls-logo{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#f4f4f5;letter-spacing:-.5px}
+.ls-logo em{font-style:italic;color:#d4a843}
+.ls-bar{width:200px;height:2px;background:#27272a;border-radius:2px;overflow:hidden}
+.ls-fill{height:100%;background:linear-gradient(90deg,#b8902e,#f5dfa0);border-radius:2px;animation:lf 1.3s ease both}
+@keyframes lf{from{width:0}to{width:100%}}
+.ls-txt{font-size:11px;color:#52525b;letter-spacing:1.5px;text-transform:uppercase}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:var(--sw);right:0;height:var(--th);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:100;transition:left .3s}
+.tb-l{display:flex;align-items:center;gap:12px;min-width:0}
+.tb-title{font-size:15px;font-weight:600;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.rbadge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px}
+.rb-admin{background:var(--purple-l);color:var(--purple)}
+.rb-trial{background:var(--gold-l);color:var(--gold)}
+.rb-pro{background:var(--green-l);color:var(--green)}
+.rdot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.u-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.u-av.client{background:linear-gradient(135deg,#fde68a,#fbbf24);color:#92400e}
+.u-av.admin{background:linear-gradient(135deg,#e9d5ff,#c084fc);color:#6b21a8}
+.u-name{font-size:12px;font-weight:600}
+.u-role{font-size:10px;color:var(--muted)}
+.btn-ico{width:34px;height:34px;border-radius:8px;background:none;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--muted);transition:all .15s}
+.btn-ico:hover{border-color:var(--border2);color:var(--ink);background:var(--bg)}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sw);background:var(--ink);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
+.sb-brand{height:var(--th);display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.sb-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(184,144,46,.25)}
+.sb-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#f4f4f5;letter-spacing:-.3px}
+.sb-name em{font-style:italic;color:var(--gold2)}
+.sb-scroll{flex:1;overflow-y:auto;padding:14px 10px}
+.ns-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#3f3f46;padding:0 12px;margin:14px 0 5px}
+.ns-label:first-child{margin-top:0}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:500;color:#71717a;cursor:pointer;transition:all .15s;user-select:none;margin-bottom:1px}
+.ni:hover{background:rgba(255,255,255,.07);color:#d4d4d8}
+.ni.on{background:rgba(255,255,255,.12);color:#f4f4f5;font-weight:600}
+.ni-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.ni-badge{margin-left:auto;font-size:10px;font-weight:700;min-width:20px;height:20px;border-radius:10px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.sb-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.plan-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}
+.pb-label{font-size:9px;color:#52525b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.pb-name{font-size:13px;font-weight:600;color:#f4f4f5;margin-bottom:2px}
+.pb-sub{font-size:11px;color:#71717a}
+.pb-bar{height:3px;background:#27272a;border-radius:2px;margin-top:8px;overflow:hidden}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .6s}
+
+/* MAIN */
+.main{margin-left:var(--sw);padding-top:var(--th);min-height:100vh}
+.view{display:none;padding:32px;animation:fu .3s ease both}
+.view.on{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* VIEW HEADER */
+.vh{margin-bottom:26px}
+.vt{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;letter-spacing:-.8px;margin-bottom:4px}
+.vs{font-size:13px;color:var(--muted);font-weight:300}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:22px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--sc,var(--border))}
+.sc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.sl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sv{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;margin-bottom:6px}
+.sc-ch{font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.ch{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ct{font-size:14px;font-weight:600}
+
+/* REVIEWS */
+.rr{padding:16px 22px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;transition:background .15s}
+.rr:last-child{border-bottom:none}
+.rr:hover{background:#fafaf9}
+.rs{font-size:13px;white-space:nowrap;padding-top:1px}
+.ra{font-size:13px;font-weight:600;margin-bottom:3px}
+.rt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.rp{font-size:12px;color:var(--green);background:var(--green-l);padding:8px 12px;border-radius:6px;line-height:1.5;border-left:2px solid var(--green)}
+.rm{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.rd{font-size:11px;color:var(--muted)}
+.pill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.p-g{background:var(--green-l);color:var(--green)}
+.p-y{background:var(--gold-l);color:var(--gold)}
+.p-r{background:var(--red-l);color:var(--red)}
+.p-b{background:var(--blue-l);color:var(--blue)}
+
+/* FILTER TABS */
+.ftabs{display:flex;gap:4px}
+.ftab{font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);transition:all .15s;background:transparent;color:var(--muted);font-family:'Inter',sans-serif}
+.ftab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* FORM */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,144,46,.08)}
+.field textarea{resize:vertical;min-height:88px;line-height:1.6}
+
+/* STARS */
+.strow{display:flex;gap:6px;margin-bottom:8px}
+.star{font-size:24px;cursor:pointer;filter:grayscale(1) opacity(.3);transition:all .15s;user-select:none}
+.star.on{filter:none;transform:scale(1.1)}
+
+/* BUTTONS */
+.btn-p{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;background:var(--ink);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-p:hover:not(:disabled){background:var(--ink2);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-g{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-g:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(184,144,46,.3)}
+.btn-o{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;transition:all .15s}
+.btn-o:hover{border-color:var(--border2);color:var(--ink)}
+.bw{width:100%}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lb .spin{display:block}.lb .bl{display:none}
+
+/* SETTINGS */
+.sr{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:16px}
+.sr:last-child{border-bottom:none;padding-bottom:0}
+.sn{font-size:13px;font-weight:600;margin-bottom:2px}
+.sd{font-size:11px;color:var(--muted);line-height:1.5}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{display:none}
+.tt{position:absolute;inset:0;background:var(--border2);border-radius:12px;cursor:pointer;transition:background .2s}
+.toggle input:checked+.tt{background:var(--green)}
+.tt::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.tt::after{transform:translateX(20px)}
+.sel-s{background:var(--bg);border:1px solid var(--border);color:var(--ink);font-family:'Inter',sans-serif;font-size:12px;padding:7px 12px;border-radius:6px;outline:none;cursor:pointer;flex-shrink:0}
+
+/* TRIAL BANNER */
+.tb-banner{background:linear-gradient(135deg,var(--gold-l),#fffbeb);border:1px solid var(--gold-b);border-radius:12px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.tbb-l{display:flex;align-items:center;gap:12px}
+.tbb-ico{font-size:24px}
+.tbb-title{font-size:13px;font-weight:600;color:var(--gold)}
+.tbb-sub{font-size:11px;color:var(--gold2);margin-top:1px}
+
+/* ALERT */
+.alert{padding:12px 16px;border-radius:8px;font-size:12px;line-height:1.7;border-left:3px solid;margin-bottom:16px}
+.a-g{border-color:var(--green);background:var(--green-l);color:#14532d}
+.a-y{border-color:var(--gold);background:var(--gold-l);color:#92400e}
+.a-r{border-color:var(--red);background:var(--red-l);color:#7f1d1d}
+
+/* CLIENTS TABLE */
+.ctable{width:100%;border-collapse:collapse;font-size:13px}
+.ctable th{background:var(--bg);padding:10px 16px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+.ctable td{padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr:hover td{background:#fafaf9}
+.cn{font-weight:600}.ce{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ISO GRID */
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.ic:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.06)}
+.ich{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.ic-av{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ic-n{font-size:13px;font-weight:600}.ic-t{font-size:11px;color:var(--muted)}
+.icb{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.ir{display:flex;justify-content:space-between;font-size:12px}
+.il{color:var(--muted)}.iv{font-weight:600}
+
+/* BILLING */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.pc{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:24px;transition:border-color .2s}
+.pc.cur{border-color:var(--gold);background:var(--gold-l)}
+.pp{font-size:32px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin:8px 0 4px}
+.pp span{font-size:14px;font-weight:400;color:var(--muted)}
+.pfl{display:flex;flex-direction:column;gap:8px;margin:16px 0;font-size:13px}
+.pf{display:flex;align-items:center;gap:8px}
+.pfd{color:var(--green);font-weight:700;flex-shrink:0}
+
+/* RESULT */
+.ra-box{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.85;color:var(--ink);white-space:pre-wrap}
+.rph{min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--dim)}
+.rph-ico{font-size:30px;opacity:.4}
+.rph-txt{font-size:11px;text-align:center;max-width:180px;line-height:1.5}
+.rf{display:flex;gap:8px;margin-top:12px}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.mo.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:460px;animation:mi .3s cubic-bezier(.34,1.56,.64,1) both;max-height:90vh;overflow-y:auto}
+@keyframes mi{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.mt{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:6px}
+.ms{font-size:13px;color:var(--muted);margin-bottom:22px;font-weight:300}
+.ma{display:flex;gap:10px;margin-top:18px}
+
+/* HAMBURGER */
+.hb{display:none;position:fixed;top:12px;left:14px;z-index:300;width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:16px;align-items:center;justify-content:center}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150}
+
+/* TONE PREVIEW */
+.tone-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;font-style:italic;transition:all .3s}
+
+/* 2-COL GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  :root{--sw:0px}
+  .sidebar{transform:translateX(-240px);width:240px}
+  .sidebar.open{transform:translateX(0)}
+  .topbar{left:0;padding:0 14px 0 54px}
+  .hb{display:flex}.main{margin-left:0}
+  .sb-ov.open{display:block}
+}
+@media(max-width:640px){
+  .view{padding:18px 14px}
+  .sg{grid-template-columns:1fr 1fr}
+  .pg{grid-template-columns:1fr}
+  .gen-grid{grid-template-columns:1fr!important}
+  .grid-2{grid-template-columns:1fr}
+  .u-name,.u-role{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="ls" id="ls">
+  <div class="ls-logo">Repu<em>Agent</em></div>
+  <div class="ls-bar"><div class="ls-fill"></div></div>
+  <div class="ls-txt">Chargement…</div>
+</div>
+
+<button class="hb" onclick="toggleSb()">☰</button>
+<div class="sb-ov" id="sb-ov" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">⭐</div>
+    <div class="sb-name">Repu<em>Agent</em></div>
+  </div>
+  <div class="sb-scroll" id="nav-c" style="display:none">
+    <div class="ns-label">Menu</div>
+    <div class="ni on" onclick="sv('c-home',this)"><span class="ni-ico">📊</span>Vue d'ensemble</div>
+    <div class="ni" onclick="sv('c-reviews',this)"><span class="ni-ico">⭐</span>Mes avis<span class="ni-badge">3</span></div>
+    <div class="ni" onclick="sv('c-gen',this)"><span class="ni-ico">✍️</span>Générateur IA</div>
+    <div class="ns-label">Compte</div>
+    <div class="ni" onclick="sv('c-settings',this)"><span class="ni-ico">⚙️</span>Paramètres IA</div>
+    <div class="ni" onclick="sv('c-billing',this)"><span class="ni-ico">💳</span>Abonnement</div>
+  </div>
+  <div class="sb-scroll" id="nav-a" style="display:none">
+    <div class="ns-label">Administration</div>
+    <div class="ni on" onclick="sv('a-home',this)"><span class="ni-ico">📊</span>Vue globale</div>
+    <div class="ni" onclick="sv('a-clients',this)"><span class="ni-ico">👥</span>Clients</div>
+    <div class="ni" onclick="sv('a-iso',this)"><span class="ni-ico">🔒</span>Isolation données</div>
+    <div class="ni" onclick="sv('a-revenue',this)"><span class="ni-ico">💶</span>Revenus</div>
+  </div>
+  <div class="sb-footer">
+    <div class="plan-box">
+      <div class="pb-label">Plan</div>
+      <div class="pb-name" id="pb-name">—</div>
+      <div class="pb-sub" id="pb-sub">—</div>
+      <div class="pb-bar"><div class="pb-fill" id="pb-fill" style="width:100%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-l">
+    <div class="tb-title" id="tb-title">Chargement…</div>
+    <div class="rbadge" id="tb-badge"></div>
+  </div>
+  <div class="tb-r">
+    <div class="u-av client" id="u-av">?</div>
+    <div>
+      <div class="u-name" id="u-name">—</div>
+      <div class="u-role" id="u-role">—</div>
+    </div>
+    <button class="btn-ico" onclick="logout()" title="Déconnexion">↩</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ═══ CLIENT: HOME ═══ -->
+  <div class="view on" id="view-c-home">
+    <div class="vh">
+      <div class="vt" id="c-welcome">Bonjour 👋</div>
+      <div class="vs">Activité de votre fiche Google ce mois-ci.</div>
+    </div>
+    <div class="tb-banner" id="trial-banner">
+      <div class="tbb-l">
+        <div class="tbb-ico">⏳</div>
+        <div>
+          <div class="tbb-title">Essai gratuit — <span id="trial-days">14</span> jours restants</div>
+          <div class="tbb-sub">Passez à Pro pour continuer après l'essai.</div>
+        </div>
+      </div>
+      <button class="btn-g" onclick="sv('c-billing',document.querySelector('#nav-c .ni:nth-child(6)'))">Passer à Pro →</button>
+    </div>
+    <div class="sg">
+      <div class="sc" style="--sc:var(--gold)"><div class="sl">Note moyenne</div><div class="sv" style="color:var(--gold)">4.6</div><div class="sc-ch up">↑ +0.2 ce mois</div></div>
+      <div class="sc" style="--sc:var(--blue)"><div class="sl">Avis reçus</div><div class="sv">14</div><div class="sc-ch up">↑ +4 vs M-1</div></div>
+      <div class="sc" style="--sc:var(--green)"><div class="sl">Réponses auto</div><div class="sv" style="color:var(--green)">11</div><div class="sc-ch up">✓ 79%</div></div>
+      <div class="sc" style="--sc:var(--red)"><div class="sl">À traiter</div><div class="sv" style="color:var(--red)">3</div><div class="sc-ch dn">⚠ Négatifs</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Derniers avis</div></div>
+      <div class="rr"><div class="rs">⭐⭐⭐⭐⭐</div><div><div class="ra">Marie L.</div><div class="rt">Superbe prestation, je reviendrai !</div><div class="rp">Merci infiniment Marie ! Toute l'équipe est ravie. À très bientôt !</div></div><div class="rm"><span class="pill p-g">✓ Auto</span><div class="rd">2h</div></div></div>
+      <div class="rr"><div class="rs">⭐⭐⭐⭐</div><div><div class="ra">Thomas R.</div><div class="rt">Bonne expérience, petit temps d'attente.</div><div class="rp">Merci Thomas ! Nous travaillons à l'améliorer. À bientôt !</div></div><div class="rm"><span class="pill p-g">✓ Auto</span><div class="rd">Hier</div></div></div>
+      <div class="rr"><div class="rs">⭐⭐</div><div><div class="ra">Anonyme</div><div class="rt">Décevant. Prix trop élevés.</div></div><div class="rm"><span class="pill p-r">⚠ Valider</span><div class="rd">Hier</div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ CLIENT: REVIEWS ═══ -->
+  <div class="view" id="view-c-reviews">
+    <div class="vh"><div class="vt">Mes avis Google</div><div class="vs">Tous les avis et réponses de l'agent.</div></div>
+    <div class="card">
+      <div class="ch">
+        <div class="ct">14 avis ce mois</div>
+        <div class="ftabs">
+          <button class="ftab on" onclick="ft(this)">Tous</button>
+          <button class="ftab" onclick="ft(this)">À traiter</button>
+          <button class="ftab" onclick="ft(this)">Traités</button>
+        </div>
+      </div>
+      <div class="rr"><div class="rs">⭐⭐⭐⭐⭐</div><div><div class="ra">Sophie M.</div><div class="rt">Je reviens régulièrement, toujours satisfaite !</div><div class="rp">Merci Sophie pour votre fidélité ! À très bientôt !</div></div><div class="rm"><span class="pill p-g">✓ Publié</span><div class="rd">12 mars</div></div></div>
+      <div class="rr"><div class="rs">⭐⭐⭐⭐</div><div><div class="ra">Thomas R.</div><div class="rt">Bonne expérience, petit temps d'attente.</div><div class="rp">Merci Thomas ! Nous travaillons à l'améliorer.</div></div><div class="rm"><span class="pill p-g">✓ Publié</span><div class="rd">10 mars</div></div></div>
+      <div class="rr"><div class="rs">⭐⭐</div><div><div class="ra">Anonyme</div><div class="rt">Décevant. Prix trop élevés pour la qualité.</div></div><div class="rm"><span class="pill p-r">⚠ À valider</span><div class="rd">9 mars</div></div></div>
+      <div class="rr"><div class="rs">⭐⭐⭐</div><div><div class="ra">Paul D.</div><div class="rt">Correct sans plus.</div></div><div class="rm"><span class="pill p-y">⏳ En cours</span><div class="rd">8 mars</div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ CLIENT: GENERATOR ═══ -->
+  <div class="view" id="view-c-gen">
+    <div class="vh"><div class="vt">Générateur IA</div><div class="vs">Créez une réponse professionnelle pour n'importe quel avis.</div></div>
+    <div class="gen-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card" style="padding:22px">
+        <div class="field"><label>Note de l'avis</label>
+          <div class="strow">
+            <span class="star" onclick="setR(1)">⭐</span><span class="star" onclick="setR(2)">⭐</span>
+            <span class="star" onclick="setR(3)">⭐</span><span class="star" onclick="setR(4)">⭐</span>
+            <span class="star" onclick="setR(5)">⭐</span>
+          </div>
+        </div>
+        <div class="field"><label>Prénom du client</label><input type="text" id="g-name" placeholder="Sophie (optionnel)"></div>
+        <div class="field"><label>Texte de l'avis</label><textarea id="g-review" placeholder="Collez le texte ici…"></textarea></div>
+        <div class="field"><label>Langue</label><select id="g-lang"><option>Français</option><option>Anglais</option><option>Arabe</option><option>Espagnol</option></select></div>
+        <button class="btn-p bw" id="btn-gen" onclick="generate()"><div class="spin"></div><span class="bl">✨ Générer la réponse</span></button>
+        <div class="alert a-r" id="gen-err" style="display:none;margin-top:10px"></div>
+      </div>
+      <div class="card" style="padding:22px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Réponse générée</div>
+        <div id="result-box"><div class="ra-box"><div class="rph"><div class="rph-ico">💬</div><div class="rph-txt">Remplis les infos et clique sur Générer</div></div></div></div>
+        <div class="rf" id="rf" style="display:none">
+          <button class="btn-o" onclick="generate()">🔄 Regénérer</button>
+          <button class="btn-p" id="copy-btn" onclick="copyGen()">📋 Copier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CLIENT: SETTINGS ═══ -->
+  <div class="view" id="view-c-settings">
+    <div class="vh"><div class="vt">Paramètres de l'agent</div><div class="vs">Personnalisez le comportement de l'IA pour votre commerce.</div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Mon commerce -->
+      <div class="card">
+        <div class="ch"><div class="ct">🏪 Mon commerce</div></div>
+        <div style="padding:20px 22px">
+          <div class="grid-2">
+            <div class="field" style="margin-bottom:0"><label>Nom du commerce</label><input type="text" id="s-name" placeholder="Salon Élégance"></div>
+            <div class="field" style="margin-bottom:0"><label>Type d'activité</label><input type="text" id="s-type" placeholder="salon de coiffure"></div>
+            <div class="field" style="margin-bottom:0"><label>Ville / Quartier</label><input type="text" id="s-city" placeholder="Paris 15e"></div>
+            <div class="field" style="margin-bottom:0"><label>Téléphone contact</label><input type="text" id="s-phone" placeholder="01 XX XX XX XX"></div>
+          </div>
+          <div class="field" style="margin-top:14px;margin-bottom:0"><label>Mot-clé SEO local</label><input type="text" id="s-seo" placeholder="coiffeur Paris 15e — intégré dans chaque réponse"></div>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+            <button class="btn-p" onclick="saveCommerce()" style="padding:10px 24px">💾 Sauvegarder</button>
+            <span id="save-ok" style="font-size:12px;color:var(--green);display:none">✓ Sauvegardé !</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Automatisation -->
+      <div class="card">
+        <div class="ch"><div class="ct">⚙️ Automatisation</div></div>
+        <div style="padding:0 22px">
+          <div class="sr"><div><div class="sn">Réponse automatique</div><div class="sd">Répond sans validation pour les avis 3⭐ et plus</div></div><label class="toggle"><input type="checkbox" checked><div class="tt"></div></label></div>
+          <div class="sr"><div><div class="sn">Alerte avis négatifs</div><div class="sd">Email si un avis 1-2⭐ est reçu — vous validez avant publication</div></div><label class="toggle"><input type="checkbox" checked><div class="tt"></div></label></div>
+          <div class="sr"><div><div class="sn">Rapport mensuel</div><div class="sd">Bilan par email le 1er de chaque mois</div></div><label class="toggle"><input type="checkbox" checked><div class="tt"></div></label></div>
+        </div>
+      </div>
+
+      <!-- Style de réponse -->
+      <div class="card">
+        <div class="ch"><div class="ct">🎨 Style de réponse</div></div>
+        <div style="padding:0 22px">
+          <div class="sr">
+            <div><div class="sn">Ton de voix</div><div class="sd">Comment l'agent s'exprime dans les réponses</div></div>
+            <select class="sel-s" id="s-tone" onchange="updateTonePreview()">
+              <option value="chaleureux">Chaleureux & humain</option>
+              <option value="professionnel">Professionnel & courtois</option>
+              <option value="dynamique">Dynamique & moderne</option>
+              <option value="artisanal">Artisanal & authentique</option>
+            </select>
+          </div>
+          <div class="sr">
+            <div><div class="sn">Langue de réponse</div><div class="sd">Langue utilisée par défaut</div></div>
+            <select class="sel-s" id="s-lang">
+              <option>Français</option><option>Anglais</option><option>Automatique (langue de l'avis)</option>
+            </select>
+          </div>
+          <div style="padding:14px 0 0">
+            <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Aperçu du ton</div>
+            <div class="tone-preview" id="tone-preview">"Merci infiniment pour ce beau retour ! Toute l'équipe est ravie de vous lire. On vous attend très bientôt 😊"</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ CLIENT: BILLING ═══ -->
+  <div class="view" id="view-c-billing">
+    <div class="vh"><div class="vt">Mon abonnement</div><div class="vs">Gérez votre forfait RepuAgent.</div></div>
+    <div class="pg">
+      <div class="pc cur">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Plan actuel</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700">Essai gratuit</div>
+        <div class="pp">0€ <span>/ 14 jours</span></div>
+        <div class="pfl"><div class="pf"><span class="pfd">✓</span>Réponses IA illimitées</div><div class="pf"><span class="pfd">✓</span>Alertes avis négatifs</div><div class="pf"><span class="pfd">✓</span>Dashboard complet</div><div class="pf"><span class="pfd">✓</span>1 fiche Google Business</div></div>
+        <div style="text-align:center;font-size:12px;color:var(--gold);font-weight:600;background:#fff;border-radius:8px;padding:10px">⏳ <span id="bill-days">14</span> jours restants</div>
+      </div>
+      <div class="pc">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:8px">Passer à Pro</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700">Essentiel</div>
+        <div class="pp">39€ <span>/ mois</span></div>
+        <div class="pfl"><div class="pf"><span class="pfd">✓</span>Tout l'essai inclus</div><div class="pf"><span class="pfd">✓</span>Rapport mensuel auto</div><div class="pf"><span class="pfd">✓</span>Support prioritaire</div><div class="pf"><span class="pfd">✓</span>Annulation à tout moment</div></div>
+        <button class="btn-g bw" onclick="goStripe()">💳 S'abonner avec Stripe →</button>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">Paiement sécurisé · Sans engagement</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Historique des paiements</div></div>
+      <div style="padding:0 22px"><div style="display:flex;justify-content:space-between;padding:14px 0;font-size:13px"><span style="font-weight:500">Essai gratuit — 14 jours</span><span style="color:var(--muted)">Aujourd'hui</span><span style="font-weight:700;color:var(--green)">0,00 €</span></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN: HOME ═══ -->
+  <div class="view" id="view-a-home">
+    <div class="vh"><div class="vt">Vue globale</div><div class="vs">Tous tes clients et métriques en temps réel.</div></div>
+    <div class="sg">
+      <div class="sc" style="--sc:var(--blue)"><div class="sl">Clients actifs</div><div class="sv" style="color:var(--blue)">4</div><div class="sc-ch up">↑ +1 ce mois</div></div>
+      <div class="sc" style="--sc:var(--green)"><div class="sl">Avis traités</div><div class="sv">58</div><div class="sc-ch up">↑ Ce mois</div></div>
+      <div class="sc" style="--sc:var(--gold)"><div class="sl">Taux auto</div><div class="sv" style="color:var(--gold)">86%</div><div class="sc-ch up">✓ Excellent</div></div>
+      <div class="sc" style="--sc:var(--purple)"><div class="sl">MRR</div><div class="sv" style="color:var(--purple)">156€</div><div class="sc-ch up">↑ +39€</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Clients récents</div><button class="btn-g" onclick="openModal('modal-add')">+ Nouveau client</button></div>
+      <div style="overflow-x:auto">
+        <table class="ctable">
+          <thead><tr><th>Commerce</th><th>Avis/mois</th><th>Note</th><th>Plan</th><th>Statut</th></tr></thead>
+          <tbody>
+            <tr><td><div class="cn">✂️ Salon Élégance</div><div class="ce">coiffeur@demo.fr</div></td><td>14</td><td style="color:var(--gold);font-weight:700">4.6 ⭐</td><td><span class="pill p-g">Pro</span></td><td><span class="pill p-g">Actif</span></td></tr>
+            <tr><td><div class="cn">🍕 Pizza Napoli</div><div class="ce">pizza@napoli.fr</div></td><td>31</td><td style="color:var(--gold);font-weight:700">4.2 ⭐</td><td><span class="pill p-g">Pro</span></td><td><span class="pill p-g">Actif</span></td></tr>
+            <tr><td><div class="cn">🥐 Boulangerie Martin</div><div class="ce">martin@boulange.fr</div></td><td>8</td><td style="color:var(--gold);font-weight:700">4.8 ⭐</td><td><span class="pill p-y">Essai J8</span></td><td><span class="pill p-g">Actif</span></td></tr>
+            <tr><td><div class="cn">💆 Spa Zen</div><div class="ce">contact@spazen.fr</div></td><td>0</td><td style="color:var(--muted)">—</td><td><span class="pill p-y">Essai J1</span></td><td><span class="pill p-r">Configure</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN: CLIENTS ═══ -->
+  <div class="view" id="view-a-clients">
+    <div class="vh"><div class="vt">Gestion des clients</div><div class="vs">Tous tes abonnés RepuAgent.</div></div>
+    <div class="card">
+      <div class="ch"><div class="ct">4 clients</div><button class="btn-g" onclick="openModal('modal-add')">+ Ajouter un client</button></div>
+      <div style="overflow-x:auto">
+        <table class="ctable">
+          <thead><tr><th>Commerce</th><th>Email</th><th>Avis</th><th>Note</th><th>Plan</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="cn">✂️ Salon Élégance</div></td><td style="font-size:12px;color:var(--muted)">coiffeur@demo.fr</td><td>14</td><td style="color:var(--gold);font-weight:700">4.6 ⭐</td><td><span class="pill p-g">Pro 39€</span></td><td><span class="pill p-g">Actif</span></td><td><button class="btn-o" style="padding:5px 12px;font-size:11px">Gérer</button></td></tr>
+            <tr><td><div class="cn">🍕 Pizza Napoli</div></td><td style="font-size:12px;color:var(--muted)">pizza@napoli.fr</td><td>31</td><td style="color:var(--gold);font-weight:700">4.2 ⭐</td><td><span class="pill p-g">Pro 39€</span></td><td><span class="pill p-g">Actif</span></td><td><button class="btn-o" style="padding:5px 12px;font-size:11px">Gérer</button></td></tr>
+            <tr><td><div class="cn">🥐 Boulangerie Martin</div></td><td style="font-size:12px;color:var(--muted)">martin@boulange.fr</td><td>8</td><td style="color:var(--gold);font-weight:700">4.8 ⭐</td><td><span class="pill p-y">Essai J8</span></td><td><span class="pill p-g">Actif</span></td><td><button class="btn-o" style="padding:5px 12px;font-size:11px">Gérer</button></td></tr>
+            <tr><td><div class="cn">💆 Spa Zen</div></td><td style="font-size:12px;color:var(--muted)">contact@spazen.fr</td><td>0</td><td style="color:var(--muted)">—</td><td><span class="pill p-y">Essai J1</span></td><td><span class="pill p-r">Configure</span></td><td><button class="btn-o" style="padding:5px 12px;font-size:11px">Gérer</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN: ISOLATION ═══ -->
+  <div class="view" id="view-a-iso">
+    <div class="vh"><div class="vt">Isolation des données</div><div class="vs">Chaque client accède uniquement à ses propres données.</div></div>
+    <div class="alert a-g" style="margin-bottom:20px">🔒 <strong>Row Level Security activée</strong> — chaque ligne porte un <code>client_id</code>. Isolation totale garantie par Supabase.</div>
+    <div class="ig">
+      <div class="ic"><div class="ich"><div class="ic-av" style="background:#fef3c7">✂️</div><div><div class="ic-n">Salon Élégance</div><div class="ic-t">Coiffeur · Paris 15e</div></div></div><div class="icb"><div class="ir"><span class="il">Avis ce mois</span><span class="iv">14</span></div><div class="ir"><span class="il">Token Google</span><span class="iv" style="color:var(--green)">✓ Lié</span></div><div class="ir"><span class="il">Config IA</span><span class="iv" style="color:var(--green)">✓ Active</span></div></div></div>
+      <div class="ic"><div class="ich"><div class="ic-av" style="background:#fee2e2">🍕</div><div><div class="ic-n">Pizza Napoli</div><div class="ic-t">Restaurant · Lyon</div></div></div><div class="icb"><div class="ir"><span class="il">Avis ce mois</span><span class="iv">31</span></div><div class="ir"><span class="il">Token Google</span><span class="iv" style="color:var(--green)">✓ Lié</span></div><div class="ir"><span class="il">Config IA</span><span class="iv" style="color:var(--green)">✓ Active</span></div></div></div>
+      <div class="ic"><div class="ich"><div class="ic-av" style="background:#fef9c3">🥐</div><div><div class="ic-n">Boulangerie Martin</div><div class="ic-t">Boulangerie · Bordeaux</div></div></div><div class="icb"><div class="ir"><span class="il">Avis ce mois</span><span class="iv">8</span></div><div class="ir"><span class="il">Token Google</span><span class="iv" style="color:var(--gold)">⏳ Attente</span></div><div class="ir"><span class="il">Config IA</span><span class="iv" style="color:var(--green)">✓ Active</span></div></div></div>
+      <div class="ic"><div class="ich"><div class="ic-av" style="background:#ede9fe">💆</div><div><div class="ic-n">Spa Zen</div><div class="ic-t">Spa · Marseille</div></div></div><div class="icb"><div class="ir"><span class="il">Avis ce mois</span><span class="iv">0</span></div><div class="ir"><span class="il">Token Google</span><span class="iv" style="color:var(--red)">✗ Non lié</span></div><div class="ir"><span class="il">Config IA</span><span class="iv" style="color:var(--gold)">⏳ Config</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN: REVENUE ═══ -->
+  <div class="view" id="view-a-revenue">
+    <div class="vh"><div class="vt">Revenus</div><div class="vs">Vue consolidée de tes abonnements Stripe.</div></div>
+    <div class="sg">
+      <div class="sc" style="--sc:var(--purple)"><div class="sl">MRR actuel</div><div class="sv" style="color:var(--purple)">156€</div><div class="sc-ch up">↑ +39€</div></div>
+      <div class="sc" style="--sc:var(--green)"><div class="sl">Clients payants</div><div class="sv">2</div><div class="sc-ch up">↑ En croissance</div></div>
+      <div class="sc" style="--sc:var(--gold)"><div class="sl">En essai</div><div class="sv">2</div><div class="sc-ch up">→ Conversion</div></div>
+      <div class="sc" style="--sc:var(--blue)"><div class="sl">MRR potentiel</div><div class="sv" style="color:var(--blue)">234€</div><div class="sc-ch up">Si tous convertissent</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Abonnements actifs</div></div>
+      <div style="padding:0 22px">
+        <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="font-weight:500">✂️ Salon Élégance</span><span style="color:var(--muted)">Depuis le 1 mars</span><span style="font-weight:700;color:var(--green)">39€/mois</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 0;font-size:13px"><span style="font-weight:500">🍕 Pizza Napoli</span><span style="color:var(--muted)">Depuis le 15 fév.</span><span style="font-weight:700;color:var(--green)">39€/mois</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL ADD CLIENT -->
+<div class="mo" id="modal-add" onclick="closeModalOv(event,'modal-add')">
+  <div class="modal">
+    <div class="mt">Nouveau client</div>
+    <div class="ms">L'invitation sera envoyée par email. Le client configure son compte lui-même.</div>
+    <div class="field"><label>Nom du commerce *</label><input type="text" id="m-c" placeholder="Ex: Boulangerie Dupont"></div>
+    <div class="field"><label>Email du gérant *</label><input type="email" id="m-e" placeholder="gerant@commerce.fr"></div>
+    <div class="field"><label>Type d'activité</label><input type="text" placeholder="boulangerie, restaurant…"></div>
+    <div class="field"><label>Forfait</label><select><option>Essai gratuit 14 jours → 39€/mois</option><option>Pro direct — 39€/mois</option></select></div>
+    <div class="ma">
+      <button class="btn-o" onclick="closeModal('modal-add')">Annuler</button>
+      <button class="btn-g" style="flex:1" onclick="addClient()">✉️ Envoyer l'invitation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  🔧 CONFIG — Remplace ces valeurs
+// ══════════════════════════════════════
+const SB_URL     = 'https://zgedwmltilrrwwiiyzgw.supabase.co';
+const SB_ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnZWR3bWx0aWxycnd3aWl5emd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzIyNzgsImV4cCI6MjA5MDA0ODI3OH0.mHRhGILVlsruWkJ9ZIJ2sV93T9PIv_dXo4z3cCJtias';
+const STRIPE     = 'https://buy.stripe.com/14AaEW47T8XVbz4fHKe3e05';
+const ADMIN_MAIL = 'amourimustapha01@gmail.com';
+// ══════════════════════════════════════
+
+let _sb=null, gRating=0, gResult='', isAdmin=false;
+
+try{ _sb=window.supabase.createClient(SB_URL,SB_ANON); }catch(e){}
+
+window.onload=async()=>{
+  if(_sb){
+    const{data:{session}}=await _sb.auth.getSession();
+    if(!session){ window.location.href='/login.html'; return; }
+    await initUser(session.user);
+  }else{
+    initDemo();
+  }
+  setTimeout(()=>document.getElementById('ls').classList.add('out'),900);
+};
+
+async function initUser(user){
+  isAdmin = user.email === ADMIN_MAIL;
+  document.getElementById('u-av').textContent = user.email[0].toUpperCase();
+  document.getElementById('u-name').textContent = user.email.split('@')[0];
+  document.getElementById('u-role').textContent = isAdmin ? 'Administrateur' : 'Client';
+
+  if(isAdmin){
+    document.getElementById('u-av').classList.add('admin');
+    document.getElementById('u-av').classList.remove('client');
+    document.getElementById('tb-title').textContent = 'Smart Link France';
+    document.getElementById('tb-badge').className = 'rbadge rb-admin';
+    document.getElementById('tb-badge').innerHTML = '⚙️ Admin';
+    document.getElementById('pb-name').textContent = 'Admin';
+    document.getElementById('pb-sub').textContent = 'Accès total';
+    document.getElementById('pb-fill').style.width = '100%';
+    document.getElementById('nav-a').style.cssText = 'display:flex;flex-direction:column';
+    sv('a-home', document.querySelector('#nav-a .ni'));
+  } else {
+    const{data:cl} = await _sb.from('clients').select('*').eq('id', user.id).single();
+    const name = cl?.commerce_name || user.email.split('@')[0];
+    const created = cl?.created_at ? new Date(cl.created_at) : new Date();
+    const days = Math.max(0, 14 - Math.floor((new Date()-created)/86400000));
+
+    document.getElementById('tb-title').textContent = name;
+    document.getElementById('c-welcome').textContent = `Bonjour, ${name} 👋`;
+    document.getElementById('trial-days').textContent = days;
+    document.getElementById('bill-days').textContent = days;
+    document.getElementById('pb-name').textContent = days>0 ? 'Essai gratuit' : 'Pro';
+    document.getElementById('pb-sub').textContent = days>0 ? `${days} jours restants` : 'Actif';
+    document.getElementById('pb-fill').style.width = (days/14*100)+'%';
+    document.getElementById('tb-badge').className = days>0 ? 'rbadge rb-trial' : 'rbadge rb-pro';
+    document.getElementById('tb-badge').innerHTML = days>0 ? `<span class="rdot"></span>Essai — ${days}j` : '✓ Pro';
+    if(days<=0) document.getElementById('trial-banner').style.display='none';
+
+    // Pré-remplir les paramètres avec les données du client
+    if(cl){
+      if(document.getElementById('s-name')) document.getElementById('s-name').value = cl.commerce_name||'';
+      if(document.getElementById('s-type')) document.getElementById('s-type').value = cl.commerce_type||'';
+      if(document.getElementById('s-city')) document.getElementById('s-city').value = cl.city||'';
+      if(document.getElementById('s-phone')) document.getElementById('s-phone').value = cl.phone||'';
+      if(document.getElementById('s-seo')) document.getElementById('s-seo').value = cl.seo_keyword||'';
+    }
+
+    document.getElementById('nav-c').style.cssText = 'display:flex;flex-direction:column';
+    sv('c-home', document.querySelector('#nav-c .ni'));
+  }
+}
+
+function initDemo(){
+  document.getElementById('tb-title').textContent = 'Salon Élégance';
+  document.getElementById('c-welcome').textContent = 'Bonjour, Salon Élégance 👋';
+  document.getElementById('tb-badge').innerHTML = '<span class="rdot"></span>Essai — 14j';
+  document.getElementById('tb-badge').className = 'rbadge rb-trial';
+  document.getElementById('u-av').textContent = 'S';
+  document.getElementById('u-name').textContent = 'salon';
+  document.getElementById('u-role').textContent = 'Client';
+  document.getElementById('pb-name').textContent = 'Essai gratuit';
+  document.getElementById('pb-sub').textContent = '14 jours restants';
+  document.getElementById('nav-c').style.cssText = 'display:flex;flex-direction:column';
+  sv('c-home', document.querySelector('#nav-c .ni'));
+}
+
+// ── NAVIGATION ──
+function sv(name,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const v=document.getElementById('view-'+name);
+  if(v) v.classList.add('on');
+  if(el) el.classList.add('on');
+  closeSb();
+}
+
+function ft(el){ document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on')); el.classList.add('on'); }
+function toggleSb(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').classList.toggle('open'); }
+function closeSb(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').classList.remove('open'); }
+
+// ── GENERATOR ──
+function setR(v){
+  gRating=v;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
+}
+
+async function generate(){
+  if(!gRating){ showErr('Sélectionnez une note.'); return; }
+  const rev  = document.getElementById('g-review').value.trim();
+  const name = document.getElementById('g-name').value.trim();
+  const lang = document.getElementById('g-lang').value;
+  const commerce = document.getElementById('tb-title').textContent;
+  const tone = document.getElementById('s-tone')?.value || 'chaleureux';
+
+  const toneInstr = {
+    chaleureux: 'ton chaleureux, humain et proche',
+    professionnel: 'ton professionnel et courtois, vouvoiement',
+    dynamique: 'ton dynamique, moderne et enthousiaste',
+    artisanal: 'ton artisanal, authentique et sincère'
+  }[tone] || 'ton chaleureux';
+
+  const prompt = `Tu es le responsable de "${commerce}". Réponds à cet avis Google en ${lang} :
+- Note : ${gRating}/5
+- Auteur : ${name||'un client'}
+- Texte : "${rev||'(sans commentaire)'}"
+Règles : 3 phrases max, ${toneInstr}, sans guillemets, ne révèle pas que tu es une IA.`;
+
+  setGL(true); hideErr();
+  try{
+    const r = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Erreur');
+    gResult = d.reply.trim();
+    document.getElementById('result-box').innerHTML = `<div class="ra-box">${gResult}</div>`;
+    document.getElementById('rf').style.display = 'flex';
+  }catch(e){ showErr('Erreur : '+e.message); }
+  finally{ setGL(false); }
+}
+
+function copyGen(){
+  navigator.clipboard.writeText(gResult).then(()=>{
+    const b=document.getElementById('copy-btn');
+    b.textContent='✅ Copié!';
+    setTimeout(()=>b.textContent='📋 Copier',2000);
+  });
+}
+
+function setGL(on){ const b=document.getElementById('btn-gen'); b.classList.toggle('lb',on); b.disabled=on; }
+function showErr(m){ const e=document.getElementById('gen-err'); e.textContent=m; e.style.display='block'; }
+function hideErr(){ document.getElementById('gen-err').style.display='none'; }
+
+// ── TON PREVIEW ──
+function updateTonePreview(){
+  const tone = document.getElementById('s-tone')?.value;
+  const previews = {
+    chaleureux: '"Merci infiniment pour ce beau retour ! Toute l\'équipe est ravie de vous lire. On vous attend très bientôt 😊"',
+    professionnel: '"Nous vous remercions sincèrement pour votre témoignage. Votre satisfaction est notre priorité et nous espérons vous accueillir à nouveau prochainement."',
+    dynamique: '"Wow, merci pour ce super retour ! 🙌 On adore lire ça et on vous prépare une prochaine visite encore meilleure !"',
+    artisanal: '"Merci du fond du cœur pour ces mots qui nous touchent. C\'est pour des moments comme celui-là que nous faisons ce métier avec passion."'
+  };
+  const el = document.getElementById('tone-preview');
+  if(el) el.textContent = previews[tone] || previews.chaleureux;
+}
+
+// ── SAVE COMMERCE SETTINGS ──
+async function saveCommerce(){
+  if(!_sb) return;
+  const{data:{session}} = await _sb.auth.getSession();
+  if(!session) return;
+
+  const updates = {
+    commerce_name: document.getElementById('s-name')?.value.trim(),
+    commerce_type: document.getElementById('s-type')?.value.trim(),
+    city: document.getElementById('s-city')?.value.trim(),
+    phone: document.getElementById('s-phone')?.value.trim(),
+    seo_keyword: document.getElementById('s-seo')?.value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  await _sb.from('clients').update(updates).eq('id', session.user.id);
+
+  // Mettre à jour le nom affiché
+  if(updates.commerce_name){
+    document.getElementById('tb-title').textContent = updates.commerce_name;
+    document.getElementById('c-welcome').textContent = `Bonjour, ${updates.commerce_name} 👋`;
+  }
+
+  const ok = document.getElementById('save-ok');
+  ok.style.display = 'inline';
+  setTimeout(()=>ok.style.display='none', 2500);
+}
+
+// ── STRIPE ──
+function goStripe(){
+  if(STRIPE==='REMPLACE_PAR_TON_LIEN_STRIPE'){
+    alert('Configure ton lien Stripe :\n1. stripe.com → Products → "RepuAgent 39€/mois"\n2. Payment Links → Copie le lien\n3. Remplace REMPLACE_PAR_TON_LIEN_STRIPE');
+    return;
+  }
+  window.location.href = STRIPE;
+}
+
+// ── ADMIN: ADD CLIENT ──
+async function addClient(){
+  const c = document.getElementById('m-c').value.trim();
+  const e = document.getElementById('m-e').value.trim();
+  if(!c||!e){ alert('Remplis le nom et l\'email.'); return; }
+  alert(`✅ Invitation envoyée à ${e} !`);
+  closeModal('modal-add');
+}
+
+// ── MODAL ──
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModalOv(e,id){ if(e.target===e.currentTarget) closeModal(id); }
+
+// ── LOGOUT ──
+async function logout(){
+  if(_sb) await _sb.auth.signOut();
+  window.location.href = '/login.html';
+}
+</script>
+</body>
+</html>
