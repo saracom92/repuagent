@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RepuAgent — Votre réputation locale, pilotée par l'IA</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23b8882a'/><text y='.9em' font-size='70' x='12'>⭐</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0a07;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Inter',Arial,sans-serif}
+.loader{display:flex;flex-direction:column;align-items:center;gap:16px}
+.logo{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#f5f0e8;letter-spacing:-.5px}
+.logo em{font-style:italic;color:#d4a840}
+.bar{width:160px;height:2px;background:#27272a;border-radius:2px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,#b8882a,#f5d070);border-radius:2px;animation:lf 1s ease both}
+@keyframes lf{from{width:0}to{width:100%}}
+.txt{font-size:11px;color:#52525b;letter-spacing:1.5px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="loader">
+  <div class="logo">Repu<em>Agent</em></div>
+  <div class="bar"><div class="fill"></div></div>
+  <div class="txt">Chargement…</div>
+</div>
+<script>
+const SB_URL  = 'https://zgedwmltilrrwwiiyzgw.supabase.co';
+const SB_ANON = 'REMPLACE_PAR_TA_CLE_ANON';
+
+async function init() {
+  try {
+    const { createClient } = window.supabase;
+    const sb = createClient(SB_URL, SB_ANON);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      // Connecté → dashboard
+      window.location.href = '/dashboard.html';
+    } else {
+      // Non connecté → landing page publique
+      window.location.href = '/landing.html';
+    }
+  } catch(e) {
+    // Erreur → landing page
+    window.location.href = '/landing.html';
+  }
+}
+init();
+</script>
+</body>
+</html>
