@@ -2,6 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RepuAgent">
+<meta name="theme-color" content="#c8882a">
 
 <meta name="description" content="Testez RepuAgent gratuitement sans inscription. Collez un avis Google et regardez l'IA générer une réponse parfaite en 10 secondes.">
 <meta name="robots" content="index, follow">
@@ -307,6 +314,16 @@ function copyResult() {
 function showLimit() {
   document.getElementById('limit-box').style.display = 'block';
   document.getElementById('btn-gen').style.display = 'none';
+}
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  });
 }
 </script>
 </body>
