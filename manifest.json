@@ -1,0 +1,47 @@
+{
+  "name": "RepuAgent — Gestion avis Google",
+  "short_name": "RepuAgent",
+  "description": "Répondez automatiquement à vos avis Google avec l'IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0a07",
+  "theme_color": "#c8882a",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230c0a07'/><rect x='6' y='6' width='180' height='180' rx='36' fill='none' stroke='%23c8882a' stroke-width='5'/><text x='96' y='96' font-size='96' text-anchor='middle' dominant-baseline='central' fill='%23d4a840' font-family='Georgia,serif' font-weight='700'>R</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230c0a07'/><rect x='14' y='14' width='484' height='484' rx='88' fill='none' stroke='%23c8882a' stroke-width='12'/><text x='256' y='256' font-size='260' text-anchor='middle' dominant-baseline='central' fill='%23d4a840' font-family='Georgia,serif' font-weight='700'>R</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://agent.gosmartlink.app/dashboard.html",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard RepuAgent"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Mes avis",
+      "url": "/dashboard.html#reviews",
+      "description": "Voir et répondre à mes avis Google"
+    },
+    {
+      "name": "Générateur IA",
+      "url": "/dashboard.html#generator",
+      "description": "Générer une réponse IA"
+    }
+  ]
+}
