@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bienvenue sur RepuAgent Pro !</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="/manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c0a07;--card:#120e08;--ink:#f5f0e8;--muted:#a89880;
+  --gold:#c8882a;--gold2:#f5d070;--border:#2a2010;
+  --green:#16a34a;--green-l:rgba(22,163,74,.1);--green-b:rgba(22,163,74,.3);
+}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Inter',Arial,sans-serif;
+  min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:20px;
+}
+
+.wrap{width:100%;max-width:560px}
+
+/* Confettis animation */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.confetti{position:absolute;width:8px;height:8px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+
+/* Card principale */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;overflow:hidden;position:relative;z-index:1;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+.gold-top{height:5px;background:linear-gradient(90deg,#6b3d0a,#c8882a,#f5d070,#c8882a,#6b3d0a)}
+
+/* Header */
+.header{padding:40px 40px 32px;text-align:center;border-bottom:1px solid var(--border)}
+.check-circle{
+  width:72px;height:72px;background:var(--green-l);border:2px solid var(--green-b);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:32px;
+  animation:bounceIn .6s .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes bounceIn{from{transform:scale(0)}to{transform:scale(1)}}
+.header-title{font-family:Georgia,serif;font-size:28px;font-weight:700;margin-bottom:8px}
+.header-title em{color:var(--gold);font-style:italic}
+.header-sub{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* Plan */
+.plan-section{padding:24px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.plan-info{}
+.plan-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.plan-desc{font-size:12px;color:var(--muted)}
+.plan-badge{background:var(--gold);color:#0c0a07;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;flex-shrink:0}
+
+/* Étapes */
+.steps{padding:28px 40px;border-bottom:1px solid var(--border)}
+.steps-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.step{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.step:last-child{margin-bottom:0}
+.step-num{
+  width:28px;height:28px;background:var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Georgia,serif;font-size:13px;font-weight:700;color:#0c0a07;
+  flex-shrink:0;margin-top:1px;
+}
+.step-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* CTA */
+.cta-section{padding:28px 40px}
+.btn-primary{
+  display:block;width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#0c0a07;font-size:15px;font-weight:700;
+  border:none;border-radius:10px;cursor:pointer;
+  font-family:'Inter',Arial,sans-serif;
+  text-decoration:none;text-align:center;
+  transition:all .2s;margin-bottom:12px;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,136,42,.3)}
+.btn-secondary{
+  display:block;width:100%;padding:12px;
+  background:transparent;color:var(--muted);font-size:13px;
+  border:1px solid var(--border);border-radius:8px;cursor:pointer;
+  font-family:'Inter',Arial,sans-serif;
+  text-decoration:none;text-align:center;transition:all .2s;
+}
+.btn-secondary:hover{border-color:var(--gold);color:var(--ink)}
+
+/* Support */
+.support{padding:20px 40px;background:#080605;text-align:center}
+.support-text{font-size:12px;color:var(--muted);line-height:1.6}
+.support-link{color:var(--gold);text-decoration:none;font-weight:600}
+
+/* Logo bas */
+.footer-logo{text-align:center;margin-top:24px;position:relative;z-index:1}
+.footer-logo-txt{font-family:Georgia,serif;font-size:16px;color:rgba(245,240,232,.3)}
+.footer-logo-txt em{color:rgba(200,136,42,.4);font-style:italic}
+
+@media(max-width:640px){
+  body{padding:16px}
+  .header{padding:32px 24px 24px}
+  .plan-section{padding:20px 24px}
+  .steps{padding:24px}
+  .cta-section{padding:24px}
+  .support{padding:16px 24px}
+  .header-title{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- Confettis -->
+<div class="confetti-wrap" id="confetti-wrap"></div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="gold-top"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="check-circle">✅</div>
+      <div class="header-title">Bienvenue dans<br>Repu<em>Agent</em> Pro !</div>
+      <div class="header-sub">Votre abonnement est activé. L'IA va maintenant gérer<br>vos avis Google automatiquement.</div>
+    </div>
+
+    <!-- Plan -->
+    <div class="plan-section">
+      <div class="plan-info">
+        <div class="plan-name">Plan Pro — 29€/mois</div>
+        <div class="plan-desc">Sans engagement · Annulation à tout moment</div>
+      </div>
+      <div class="plan-badge">✓ Actif</div>
+    </div>
+
+    <!-- 3 étapes -->
+    <div class="steps">
+      <div class="steps-title">3 étapes pour démarrer</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Connectez votre fiche Google</div>
+          <div class="step-desc">Dans Paramètres IA, liez votre fiche Google Business en 2 minutes.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Personnalisez votre ton</div>
+          <div class="step-desc">Chaleureux, professionnel, artisanal — choisissez le style qui correspond à votre commerce.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Générez votre première réponse</div>
+          <div class="step-desc">Copiez un vrai avis Google et regardez l'IA générer une réponse parfaite en 10 secondes.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <a href="https://agent.gosmartlink.app/dashboard.html" class="btn-primary">🚀 Accéder à mon dashboard →</a>
+      <a href="https://agent.gosmartlink.app/demo.html" class="btn-secondary">Voir la démo →</a>
+    </div>
+
+    <!-- Support -->
+    <div class="support">
+      <div class="support-text">
+        Une question ? Notre équipe est disponible sur WhatsApp.<br>
+        <a href="https://wa.me/33764467300" class="support-link">+33 7 64 46 73 00</a>
+        — on répond en moins de 2h.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-logo">
+    <div class="footer-logo-txt">Repu<em>Agent</em> · Smart Link France</div>
+  </div>
+</div>
+
+<script>
+// Confettis
+function createConfetti() {
+  const wrap = document.getElementById('confetti-wrap');
+  const colors = ['#c8882a', '#f5d070', '#d4a840', '#ffffff', '#16a34a'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.cssText = `
+      left: ${Math.random() * 100}%;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${4 + Math.random() * 8}px;
+      height: ${4 + Math.random() * 8}px;
+      animation-duration: ${2 + Math.random() * 3}s;
+      animation-delay: ${Math.random() * 1}s;
+      border-radius: ${Math.random() > .5 ? '50%' : '2px'};
+    `;
+    wrap.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+createConfetti();
+setTimeout(createConfetti, 1500);
+</script>
+</body>
+</html>
