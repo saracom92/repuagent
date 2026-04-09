@@ -1,0 +1,59 @@
+# RepuAgent — Smart Link France
+
+## What is RepuAgent?
+RepuAgent is an AI-powered Google review management platform for local businesses in France. It automatically generates professional responses to Google reviews in less than 2 minutes, 24/7, in the tone of the business owner.
+
+## Company
+- Name: Smart Link France
+- Product: RepuAgent
+- Website: https://agent.gosmartlink.app
+- Country: France
+- Language: French (also supports Arabic, English, Spanish)
+
+## What RepuAgent does
+- Automatically generates AI responses to Google reviews
+- Supports restaurants, hair salons, bakeries, cafes, kebab shops and all local businesses
+- Sends instant alerts for negative reviews (1-2 stars)
+- Provides a complete dashboard with rating evolution charts
+- Generates social media captions for Instagram, Facebook, TikTok, LinkedIn
+- Sends automated monthly performance reports
+- Available as a PWA (Progressive Web App)
+
+## Target customers
+Local business owners in France, especially:
+- Restaurants and food businesses
+- Hair salons and beauty businesses
+- Bakeries and pastry shops
+- Cafes and bars
+- Any local commerce receiving Google reviews
+
+## Pricing
+- 29€/month
+- 14-day free trial (no charge until day 15)
+- No commitment, cancel anytime
+
+## Key URLs
+- Main app: https://agent.gosmartlink.app
+- Free demo (no signup): https://agent.gosmartlink.app/demo.html
+- Landing page: https://agent.gosmartlink.app/landing.html
+
+## Key features
+1. AI review response generator (powered by Claude AI)
+2. Google Business Profile integration
+3. Negative review email alerts
+4. Rating evolution charts
+5. Saved response templates
+6. Visual content library (Pexels integration)
+7. Social media caption generator
+8. Automated monthly reports
+9. PWA — installable on mobile
+
+## Why RepuAgent?
+- 88% of customers read review responses before choosing a business
+- Responding to a negative review within 24h increases the chance of the customer changing their rating by 33%
+- Google's local algorithm favors businesses that actively respond to reviews
+- RepuAgent saves business owners 2-3 hours per week
+
+## Contact
+- Support: WhatsApp +33 7 64 46 73 00
+- Email: alertes@gosmartlink.app
