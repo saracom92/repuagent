@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace Affilié — RepuAgent</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c0a07;--bg2:#120e08;--card:#1a1510;
+  --ink:#f5f0e8;--muted:#a89880;--dim:#6b5e48;
+  --gold:#c8882a;--gold2:#f0c060;
+  --gold-l:rgba(200,136,42,.08);--gold-b:rgba(200,136,42,.25);
+  --border:#2a2010;--green:#16a34a;--green-l:rgba(22,163,74,.1);--green-b:rgba(22,163,74,.25);
+  --red:#dc2626;
+}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+.login-logo em{font-style:italic;color:var(--gold)}
+.login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:32px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;padding:11px 14px;border-radius:8px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.field input::placeholder{color:var(--dim)}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0c0a07;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;transition:all .2s}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,136,42,.3)}
+.err-msg{font-size:12px;color:#fca5a5;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);padding:10px 12px;border-radius:7px;margin-bottom:12px;display:none}
+
+/* ── DASHBOARD ── */
+.dash{display:none;min-height:100vh}
+
+/* Topbar */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.top-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700}
+.top-logo em{font-style:italic;color:var(--gold)}
+.top-right{display:flex;align-items:center;gap:12px}
+.top-name{font-size:13px;font-weight:600;color:var(--ink)}
+.btn-logout{padding:7px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;border-radius:7px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* Main */
+.main{max-width:900px;margin:0 auto;padding:32px 24px}
+
+/* Code promo */
+.code-card{background:var(--bg2);border:1px solid var(--gold-b);border-radius:14px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden}
+.code-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.code-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.code-value{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px}
+.code-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.btn-copy-code{margin-top:14px;padding:8px 18px;background:var(--gold-l);border:1px solid var(--gold-b);color:var(--gold);font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-copy-code:hover{background:var(--gold);color:#0c0a07}
+
+/* Stats grid */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ink);line-height:1;margin-bottom:4px}
+.stat-val.gold{color:var(--gold)}
+.stat-val.green{color:var(--green)}
+.stat-sub{font-size:11px;color:var(--muted)}
+
+/* Section */
+.section-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* Historique */
+.history-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px}
+.history-row{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.history-row:last-child{border-bottom:none}
+.hr-month{font-size:13px;font-weight:600;color:var(--ink)}
+.hr-clients{font-size:12px;color:var(--muted);margin-top:2px}
+.hr-amount{font-size:16px;font-weight:700;color:var(--green)}
+.hr-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
+.hs-paid{background:var(--green-l);color:var(--green)}
+.hs-pending{background:var(--gold-l);color:var(--gold)}
+.history-empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--muted);font-size:13px}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Info box */
+.info-box{background:var(--gold-l);border:1px solid var(--gold-b);border-radius:10px;padding:16px;margin-bottom:24px;font-size:12px;color:var(--muted);line-height:1.7}
+.info-box strong{color:var(--gold)}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:1fr 1fr}
+  .login-card{padding:32px 24px}
+  .code-value{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">Repu<em>Agent</em></div>
+    <div class="login-sub">Espace affilié — Connectez-vous</div>
+    <div class="err-msg" id="err-msg"></div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="aff-email" placeholder="votre@email.fr" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="aff-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn-login" onclick="login()" id="btn-login">Se connecter →</button>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted)">
+      Pas encore affilié ? <a href="/affiliation.html" style="color:var(--gold);text-decoration:none;font-weight:600">Rejoindre le programme</a>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dash" id="dash">
+  <div class="topbar">
+    <div class="top-logo">Repu<em>Agent</em> <span style="font-size:11px;color:var(--muted);font-family:'Inter',sans-serif;font-weight:400">· Espace affilié</span></div>
+    <div class="top-right">
+      <span class="top-name" id="top-name">—</span>
+      <button class="btn-logout" onclick="logout()">↪ Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Code promo -->
+    <div class="code-card">
+      <div class="code-label">Votre code promo</div>
+      <div class="code-value" id="aff-code">—</div>
+      <div class="code-desc">Partagez ce code à vos clients. Ils bénéficient du <strong style="color:var(--gold)">1er mois offert</strong> et vous touchez 8,70€/mois dès le 2ème mois.</div>
+      <button class="btn-copy-code" onclick="copyCode()">📋 Copier le code</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Clients actifs</div>
+        <div class="stat-val" id="stat-clients">—</div>
+        <div class="stat-sub">ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Commission du mois</div>
+        <div class="stat-val gold" id="stat-commission">—</div>
+        <div class="stat-sub">virement le 1er</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total gagné</div>
+        <div class="stat-val green" id="stat-total">—</div>
+        <div class="stat-sub">depuis le début</div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-box">
+      💳 <strong>Prochain virement :</strong> le 1er du mois prochain. Commission calculée sur tous vos clients actifs ce mois.<br>
+      📩 <strong>Questions ?</strong> WhatsApp : <a href="https://wa.me/33764467300" style="color:var(--gold);text-decoration:none">+33 7 64 46 73 00</a>
+    </div>
+
+    <!-- Historique -->
+    <div class="section-title">📊 Historique des commissions</div>
+    <div class="history-card" id="history-card">
+      <div class="loading"><div class="spin"></div>Chargement...</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SB_URL  = 'https://zgedwmltilrrwwiiyzgw.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnZWR3bWx0aWxycnd3aWl5emd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzIyNzgsImV4cCI6MjA5MDA0ODI3OH0.mHRhGILVlsruWkJ9ZIJ2sV93T9PIv_dXo4z3cCJtias';
+
+let _sb = null;
+let affCode = '';
+
+try {
+  _sb = window.supabase.createClient(SB_URL, SB_ANON, {
+    auth: { persistSession: true, storageKey: 'repuagent-affiliate-session', storage: window.localStorage }
+  });
+} catch(e) {}
+
+window.onload = async () => {
+  if (!_sb) return;
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) await loadDashboard(session.user);
+};
+
+async function login() {
+  const email = document.getElementById('aff-email').value.trim();
+  const pwd   = document.getElementById('aff-pwd').value;
+  const err   = document.getElementById('err-msg');
+  const btn   = document.getElementById('btn-login');
+
+  if (!email || !pwd) { showErr('Remplissez tous les champs.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Connexion...';
+  err.style.display = 'none';
+
+  const { data, error } = await _sb.auth.signInWithPassword({ email, password: pwd });
+
+  if (error) {
+    showErr('Email ou mot de passe incorrect.');
+    btn.disabled = false;
+    btn.textContent = 'Se connecter →';
+    return;
+  }
+
+  await loadDashboard(data.user);
+}
+
+async function loadDashboard(user) {
+  // Vérifier que c'est bien un affilié
+  const { data: aff } = await _sb
+    .from('affiliates')
+    .select('*')
+    .eq('email', user.email)
+    .maybeSingle();
+
+  if (!aff) {
+    showErr("Aucun compte affilié trouvé pour cet email. Inscrivez-vous d'abord.");
+    await _sb.auth.signOut();
+    return;
+  }
+
+  affCode = aff.code;
+  document.getElementById('aff-code').textContent = aff.code;
+  document.getElementById('top-name').textContent = aff.prenom + ' ' + aff.nom;
+
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('dash').style.display = 'block';
+
+  // Charger les stats depuis l'API
+  await loadStats(aff.code);
+}
+
+async function loadStats(code) {
+  try {
+    const res = await fetch('/api/affiliate-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+
+    if (!res.ok) throw new Error('Erreur API');
+    const data = await res.json();
+
+    document.getElementById('stat-clients').textContent = data.activeClients || 0;
+    document.getElementById('stat-commission').textContent = (data.monthCommission || 0).toFixed(2) + '€';
+    document.getElementById('stat-total').textContent = (data.totalEarned || 0).toFixed(2) + '€';
+
+    // Historique
+    const hc = document.getElementById('history-card');
+    if (!data.history || data.history.length === 0) {
+      hc.innerHTML = '<div class="history-empty">Aucun historique pour le moment. Vos premiers clients apparaîtront ici.</div>';
+    } else {
+      hc.innerHTML = data.history.map(h => `
+        <div class="history-row">
+          <div>
+            <div class="hr-month">${h.month}</div>
+            <div class="hr-clients">${h.clients} client${h.clients > 1 ? 's' : ''} actif${h.clients > 1 ? 's' : ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="hr-amount">${h.amount.toFixed(2)}€</div>
+            <div class="hr-status ${h.paid ? 'hs-paid' : 'hs-pending'}">${h.paid ? '✓ Versé' : '⏳ En cours'}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    document.getElementById('history-card').innerHTML = '<div class="history-empty">Impossible de charger les stats. Réessayez.</div>';
+    document.getElementById('stat-clients').textContent = '—';
+    document.getElementById('stat-commission').textContent = '—';
+    document.getElementById('stat-total').textContent = '—';
+  }
+}
+
+function copyCode() {
+  navigator.clipboard.writeText(affCode).then(() => {
+    const btn = document.querySelector('.btn-copy-code');
+    btn.textContent = '✅ Copié !';
+    setTimeout(() => btn.textContent = '📋 Copier le code', 2000);
+  });
+}
+
+async function logout() {
+  await _sb.auth.signOut();
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('aff-email').value = '';
+  document.getElementById('aff-pwd').value = '';
+}
+
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Se connecter →';
+}
+</script>
+</body>
+</html>
