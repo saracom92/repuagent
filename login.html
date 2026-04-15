@@ -995,7 +995,16 @@ function checkPwd(val) {
   lbl.textContent  = labels[Math.min(score,3)];
   lbl.style.color  = score > 0 ? colors[score-1] : 'var(--muted)';
 }
-
+function togglePwd(id, el) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') {
+    input.type = 'text';
+    el.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    el.textContent = '👁';
+  }
+}
 function toggleRemember() {
   rememberMe = !rememberMe;
   const cb = document.getElementById('remember-cb');
