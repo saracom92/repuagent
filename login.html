@@ -739,8 +739,8 @@ body {
             <label>Mot de passe</label>
             <div class="input-wrap" style="position:relative">
               <span class="input-icon">🔒</span>
-              <input type="password" id="pwd-s" placeholder="Minimum 8 caractères" autocomplete="new-password" oninput="checkPwd(this.value)">
-              <span onclick="togglePwd('pwd-s',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--muted);user-select:none">👁</span>
+             <input type="password" id="pwd-l" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') submit()">
+<span onclick="togglePwd('pwd-l',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--muted);user-select:none">👁</span>
             </div>
             <div class="pwd-s" id="pwd-strength">
               <div class="pwd-bars">
